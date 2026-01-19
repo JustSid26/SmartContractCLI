@@ -8,13 +8,13 @@ stores, and executes agreement logic on-chain using deterministic rules.
 Smart contracts are difficult to audit and prone to logical errors.
 
 ## Solution
-Introducing a rule-based validator layer with invariant checks.
+Introducing a rule-based validator layer with invariant checks.<br>
 Can be used through CLI. Later, this will be adapted to a UI through a web application.
 
 ## Architechture
-The diagram below illustrates the workflow between the UI, validation logic and smart contracts input. 
+The diagram below illustrates the workflow between the UI, validation logic and smart contracts input.<br> 
 ![System Architecture](docs/SmartContract.png)
 
 ## Tech Stack
--Rust
--React JS:
+-Rust <br>
+-React JS
