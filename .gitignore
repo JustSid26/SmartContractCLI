@@ -1,2 +1,12 @@
+# Rust
+backend/target/
+
+# Environment variables
 **/.env
+
+# OS
+.DS_Store
+
+# Logs
+*.log
 
