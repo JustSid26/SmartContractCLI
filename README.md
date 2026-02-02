@@ -17,5 +17,8 @@ The diagram below illustrates the workflow between the UI, validation logic and 
 ![System Architecture](docs/SmartContract.png)
 
 ## Tech Stack
--Rust <br>
--React JS
+- Backend: Rust <br>
+- Frontend: TypeScript(React)
+![System Architecture](docs/ts-logo.webp)
+![System Architecture](docs/react-logo.webp)
+![System Architecture](docs/rust-logo.webp)
