@@ -19,7 +19,5 @@ The diagram below illustrates the workflow between the UI, validation logic and 
 ## Tech Stack
 - Backend: Rust <br>
 - Frontend: TypeScript(React) <br>
-<img src="docs/ts-logo.webp" alt="TypeScript" width="40"/>
-<img src="docs/react-logo.webp" alt="React" width="40"/>
-<img src="docs/rust-logo.webp" alt="Rust" width="40"/>
+<img src="docs/ts-logo.webp" alt="TypeScript" width="40"/> <img src="docs/react-logo.webp" alt="React" width="40"/> <img src="docs/rust-logo.webp" alt="Rust" width="40"/>
 
