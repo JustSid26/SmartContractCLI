@@ -1,29 +1,38 @@
-use anyhow::Result;
-use clap::Parser;
+mod routes;
+mod errors;
 
-mod cli;
-mod validator;
+use axum::{
+    routing::{get, post},
+    Router,
+};
+use std::net::SocketAddr;
+use tower_http::cors::{Any, CorsLayer};
 
-use cli::{Cli, Commands};
+use routes::health::health;
+use routes::validate::validate_contract;
+#[tokio::main]
+async fn main() {
 
-fn main() -> Result<()> {
-    dotenvy::dotenv().ok();
+    let cors = CorsLayer::new()
+        .allow_origin(Any)
+        .allow_methods(Any)
+        .allow_headers(Any);
 
-    let cli = Cli::parse();
+    let app = Router::new()
+        .route("/api/health", get(health))
+        .route("/api/validate", post(validate_contract))
+        .layer(cors);
 
-    match cli.command {
-        Commands::Validate { path, network } => {
-            validator::input::validate_input_file(&path)?;
-            validator::network::validate_network(&network)?;
-            validator::env::validate_required_vars(&[
-                "PRIVATE_KEY",
-                &format!("{}_RPC", network.to_uppercase()),
-            ])?;
+        let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
 
-            println!("Validation successful");
-        }
-    }
+    println!("Server running at http://{}", addr);
 
-    Ok(())
+    axum::serve(
+        tokio::net::TcpListener::bind(addr)
+            .await
+            .unwrap(),
+        app,
+    )
+    .await
+    .unwrap();
 }
-
