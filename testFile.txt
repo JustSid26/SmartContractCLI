@@ -1,2 +1,0 @@
-testfile just to check if validator, cli and network modules are working
-
