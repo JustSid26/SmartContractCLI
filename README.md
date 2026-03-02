@@ -19,6 +19,7 @@ The diagram below illustrates the workflow between the UI, validation logic and 
 ## Installation + Execution Steps
 <h3>Step 1:</h3>
 Clone the git repository:
+
 ```
 git clone https://github.com/JustSid26/SmartContractCLI
 ```
@@ -83,10 +84,12 @@ npm -v
 
 <h3>Step 4:</h3>
 Inside the root folder(SmartContractCLI), run the command to install node modules:
+
 ```
 cd frontend
 npm install
 ```
+
 Then go back to root directory again(SmartContract):
 ```
 cd ..
@@ -129,10 +132,12 @@ Make sure to edit the contract_name.wasm with correct file name.
 
 <h3>Step 6:</h3>
 To validate contracts from website(UI), go to root directory(SmartContractCLI), then run:
+
 ```
 cd frontend
 npm run dev -- -p 3001
 ```
+
 Make sure port 3001 is not being used by the system.
 
 Output:
