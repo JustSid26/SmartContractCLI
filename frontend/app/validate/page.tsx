@@ -1,11 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { validateContract, ValidationSuccess } from "@/lib/api";
+import FileUploader from "@/app/components/validate/FileUploader";
+import ValidationResult from "@/app/components/validate/ValidationResult";
+import Button from "@/app/components/ui/Button";
+import Card from "@/app/components/ui/Card";
+import { validateContract } from "@/lib/api";
 
 export default function ValidatePage() {
     const [file, setFile] = useState<File | null>(null);
-    const [result, setResult] = useState<ValidationSuccess | null>(null);
+    const [result, setResult] = useState<any>(null);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
 
@@ -20,57 +24,31 @@ export default function ValidatePage() {
             const response = await validateContract(file);
             setResult(response);
         } catch (err: any) {
-            setError(
-                err.response?.data?.error || "Unexpected backend error"
-            );
+            setError(err.response?.data?.error || "Validation failed");
         }
 
         setLoading(false);
     };
 
     return (
-        <div className="min-h-screen bg-black text-white p-10">
-            <h1 className="text-3xl font-bold mb-6">
-                CosmWasm Contract Validator
-            </h1>
+        <div className="max-w-4xl mx-auto space-y-8">
+            <h2 className="text-2xl font-semibold">Contract Validation</h2>
 
-            <div className="bg-gray-900 p-6 rounded-xl space-y-4 max-w-xl">
+            <Card>
+                <div className="space-y-6">
+                    <FileUploader file={file} setFile={setFile} />
 
-                <input
-                    type="file"
-                    accept=".wasm"
-                    onChange={(e) => setFile(e.target.files?.[0] || null)}
-                    className="block w-full text-sm"
-                />
+                    <Button
+                        onClick={handleValidate}
+                        disabled={!file || loading}
+                        fullWidth
+                    >
+                        {loading ? "Validating..." : "Validate Contract"}
+                    </Button>
+                </div>
+            </Card>
 
-                <button
-                    onClick={handleValidate}
-                    disabled={loading}
-                    className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded"
-                >
-                    {loading ? "Validating..." : "Validate Contract"}
-                </button>
-
-                {result && (
-                    <div className="bg-green-800 p-4 rounded">
-                        <p className="font-semibold">Validation Successful</p>
-                        <p className="text-sm mt-2">{result.message}</p>
-                        <p className="text-sm mt-2">
-                            Size: {result.size_bytes} bytes
-                        </p>
-                    </div>
-                )}
-
-                {error && (
-                    <div className="bg-red-800 p-4 rounded">
-                        <p className="font-semibold">Validation Failed</p>
-                        <p className="text-sm mt-2 whitespace-pre-wrap">
-                            {error}
-                        </p>
-                    </div>
-                )}
-
-            </div>
+            <ValidationResult result={result} error={error} />
         </div>
     );
 }
