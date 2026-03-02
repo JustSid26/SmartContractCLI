@@ -10,6 +10,7 @@ use tower_http::cors::{Any, CorsLayer};
 
 use routes::health::health;
 use routes::validate::validate_contract;
+
 #[tokio::main]
 async fn main() {
 
@@ -23,7 +24,7 @@ async fn main() {
         .route("/api/validate", post(validate_contract))
         .layer(cors);
 
-        let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
+    let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
 
     println!("Server running at http://{}", addr);
 

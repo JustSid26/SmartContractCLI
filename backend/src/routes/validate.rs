@@ -48,18 +48,18 @@ pub async fn validate_contract(
                 ));
             }
 
-            // Create temp file
+            //creates temp files for checking
             let temp_file = format!("/tmp/{}.wasm", Uuid::new_v4());
             fs::write(&temp_file, &data)
                 .map_err(|_| AppError::Internal)?;
 
-            // Run cosmwasm-check CLI
+            //cli
             let output = Command::new("cosmwasm-check")
                 .arg(&temp_file)
                 .output()
                 .map_err(|_| AppError::Internal)?;
 
-            // Clean up
+            //clean fule
             let _ = fs::remove_file(&temp_file);
 
             if output.status.success() {
