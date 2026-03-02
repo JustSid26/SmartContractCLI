@@ -22,7 +22,9 @@ Clone the git repository:
 ```
 git clone https://github.com/JustSid26/SmartContractCLI
 ```
+
 The file structure should like:
+
 ```
 .
 ├── backend
