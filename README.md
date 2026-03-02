@@ -22,6 +22,21 @@ Clone the git repository:
 ```
 git clone https://github.com/JustSid26/SmartContractCLI
 ```
+The file structure should like:
+```
+.
+├── backend
+│   ├── src
+│   └── target
+├── contracts
+│   └── counter_contract
+├── docs
+└── frontend
+    ├── app
+    ├── lib
+    ├── node_modules
+    └── public
+```
 <h3>Step 2:</h3>
 Make sure to have rust installed.
 
@@ -65,7 +80,7 @@ npm -v
 ```
 
 <h3>Step 4:</h3>
-Inside the root folder(SmartContracrCLI), run the command to install node modules:
+Inside the root folder(SmartContractCLI), run the command to install node modules:
 ```
 cd frontend
 npm install
