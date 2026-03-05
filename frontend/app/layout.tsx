@@ -1,40 +1,43 @@
 import "./globals.css";
-import Link from "next/link";
+import Sidebar from "@/app/components/layout/Sidebar";
+import Header from "@/app/components/Header";
+
+export const metadata = {
+    title: "SmartContractCLI",
+    description: "Deploy and validate smart contracts",
+};
 
 export default function RootLayout({
-                                       children,
-                                   }: {
+    children,
+}: {
     children: React.ReactNode;
 }) {
     return (
         <html lang="en">
-        <body className="bg-[#0e0e11] text-gray-200">
-        <div className="flex min-h-screen">
+            <head>
+                <link rel="preconnect" href="https://fonts.googleapis.com" />
+                <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+                <link
+                    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+                    rel="stylesheet"
+                />
+            </head>
+            <body>
+                <div className="flex min-h-screen relative z-10">
 
-            {/* Sidebar */}
-            <aside className="w-64 bg-[#15151a] border-r border-gray-800 p-6 space-y-6">
-                <h1 className="text-xl font-bold text-white">
-                    SmartContractCLI
-                </h1>
+                    {/* Sidebar */}
+                    <Sidebar />
 
-                <nav className="space-y-3 text-sm">
-                    <Link href="/" className="block hover:text-white">
-                        Dashboard
-                    </Link>
-                    <Link href="/validate" className="block hover:text-white">
-                        Validate
-                    </Link>
-                    <Link href="#" className="block text-gray-500">
-                        Deploy (soon)
-                    </Link>
-                </nav>
-            </aside>
+                    {/* Main pane */}
+                    <div className="flex-1 flex flex-col min-h-screen">
+                        <Header />
+                        <main className="flex-1 p-10">
+                            {children}
+                        </main>
+                    </div>
 
-            {/* Main Content */}
-            <main className="flex-1 p-10">{children}</main>
-
-        </div>
-        </body>
+                </div>
+            </body>
         </html>
     );
 }
