@@ -15,35 +15,48 @@ export default function ValidatePage() {
 
     const handleValidate = async () => {
         if (!file) return;
-
         setLoading(true);
         setError(null);
         setResult(null);
-
         try {
             const response = await validateContract(file);
             setResult(response);
         } catch (err: any) {
             setError(err.response?.data?.error || "Validation failed");
         }
-
         setLoading(false);
     };
 
     return (
-        <div className="max-w-4xl mx-auto space-y-8">
-            <h2 className="text-2xl font-semibold">Contract Validation</h2>
+        <div style={{ maxWidth: "680px", display: "flex", flexDirection: "column", gap: "32px" }}>
 
-            <Card>
-                <div className="space-y-6">
+            {/* Page title */}
+            <div>
+                <h2
+                    style={{
+                        fontSize: "22px",
+                        fontWeight: 600,
+                        letterSpacing: "-0.03em",
+                        color: "var(--text-primary)",
+                        marginBottom: "4px",
+                    }}
+                >
+                    Contract Validation
+                </h2>
+                <p style={{ fontSize: "13px", color: "var(--text-muted)" }}>
+                    Upload a <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "12px" }}>.wasm</span> file to validate it
+                </p>
+            </div>
+
+            <Card title="Upload File">
+                <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
                     <FileUploader file={file} setFile={setFile} />
-
                     <Button
                         onClick={handleValidate}
                         disabled={!file || loading}
                         fullWidth
                     >
-                        {loading ? "Validating..." : "Validate Contract"}
+                        {loading ? "Validating…" : "Validate Contract"}
                     </Button>
                 </div>
             </Card>
