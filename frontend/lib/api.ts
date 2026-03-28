@@ -14,3 +14,12 @@ export const validateContract = async (file: File) => {
 
     return response.data;
 };
+
+export const checkHealth = async (): Promise<boolean> => {
+    try {
+        const res = await axios.get("http://localhost:3000/api/health", { timeout: 3000 });
+        return res.data?.status === "running";
+    } catch {
+        return false;
+    }
+};
