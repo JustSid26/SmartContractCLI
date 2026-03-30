@@ -1,6 +1,7 @@
 import "./globals.css";
 import Sidebar from "@/app/components/layout/Sidebar";
 import Header from "@/app/components/Header";
+import Providers from "@/app/components/Providers";
 
 export const metadata = {
     title: "SmartContractCLI",
@@ -23,20 +24,22 @@ export default function RootLayout({
                 />
             </head>
             <body>
-                <div className="flex min-h-screen relative z-10">
+                <Providers>
+                    <div className="flex min-h-screen relative z-10">
 
-                    {/* Sidebar */}
-                    <Sidebar />
+                        {/* Sidebar */}
+                        <Sidebar />
 
-                    {/* Main pane */}
-                    <div className="flex-1 flex flex-col min-h-screen">
-                        <Header />
-                        <main className="flex-1 p-10">
-                            {children}
-                        </main>
+                        {/* Main pane */}
+                        <div className="flex-1 flex flex-col min-h-screen">
+                            <Header />
+                            <main className="flex-1 p-10">
+                                {children}
+                            </main>
+                        </div>
+
                     </div>
-
-                </div>
+                </Providers>
             </body>
         </html>
     );

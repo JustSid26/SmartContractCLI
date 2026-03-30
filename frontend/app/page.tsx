@@ -2,9 +2,23 @@
 
 import { useEffect, useState } from "react";
 import { checkHealth } from "@/lib/api";
+import { useWallet } from "@/app/context/WalletContext";
+
+/* ------------------------------------------------------------------ */
+/*  Truncate helper                                                    */
+/* ------------------------------------------------------------------ */
+
+function truncateAddress(addr: string): string {
+    return `${addr.slice(0, 6)}…${addr.slice(-4)}`;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Page                                                               */
+/* ------------------------------------------------------------------ */
 
 export default function Home() {
     const [backendOnline, setBackendOnline] = useState<boolean | null>(null);
+    const { address, balance, networkName, connect } = useWallet();
 
     useEffect(() => {
         const poll = async () => setBackendOnline(await checkHealth());
@@ -27,7 +41,6 @@ export default function Home() {
         { label: "Status", value: statusLabel, sub: "Backend", color: statusColor },
     ];
 
-
     return (
         <div style={{ maxWidth: "900px", display: "flex", flexDirection: "column", gap: "32px" }}>
 
@@ -49,8 +62,112 @@ export default function Home() {
                 </p>
             </div>
 
+            {/* Wallet connection card */}
+            {!address ? (
+                <div
+                    style={{
+                        background: "var(--bg-elevated)",
+                        border: "1px solid var(--border-subtle)",
+                        borderRadius: "12px",
+                        padding: "24px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        gap: "16px",
+                        transition: "border-color 0.2s",
+                    }}
+                >
+                    <div>
+                        <p style={{ fontSize: "13.5px", color: "var(--text-primary)", fontWeight: 500, marginBottom: "4px" }}>
+                            Wallet not connected
+                        </p>
+                        <p style={{ fontSize: "12px", color: "var(--text-muted)" }}>
+                            Connect MetaMask to view your wallet details
+                        </p>
+                    </div>
+                    <button
+                        onClick={connect}
+                        style={{
+                            padding: "8px 18px",
+                            borderRadius: "8px",
+                            background: "#fff",
+                            color: "#000",
+                            border: "1px solid #fff",
+                            fontSize: "13px",
+                            fontWeight: 500,
+                            cursor: "pointer",
+                            transition: "all 0.15s",
+                            whiteSpace: "nowrap",
+                            letterSpacing: "-0.01em",
+                        }}
+                        onMouseEnter={(e) => {
+                            (e.currentTarget as HTMLElement).style.background = "#e6e6e6";
+                        }}
+                        onMouseLeave={(e) => {
+                            (e.currentTarget as HTMLElement).style.background = "#fff";
+                        }}
+                    >
+                        Connect
+                    </button>
+                </div>
+            ) : (
+                <div
+                    style={{
+                        background: "var(--bg-elevated)",
+                        border: "1px solid var(--border-subtle)",
+                        borderRadius: "12px",
+                        padding: "24px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "16px",
+                        transition: "border-color 0.2s",
+                    }}
+                >
+                    {/* Green glow dot */}
+                    <div
+                        style={{
+                            width: "36px",
+                            height: "36px",
+                            borderRadius: "50%",
+                            background: "rgba(74, 222, 128, 0.1)",
+                            border: "1px solid rgba(74, 222, 128, 0.25)",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            flexShrink: 0,
+                        }}
+                    >
+                        <span
+                            style={{
+                                display: "block",
+                                width: "10px",
+                                height: "10px",
+                                borderRadius: "50%",
+                                background: "#4ade80",
+                                boxShadow: "0 0 8px rgba(74, 222, 128, 0.5)",
+                            }}
+                        />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ fontSize: "13.5px", color: "var(--text-primary)", fontWeight: 500 }}>
+                            Connected to {networkName}
+                        </p>
+                        <p
+                            style={{
+                                fontSize: "12px",
+                                color: "var(--text-muted)",
+                                fontFamily: "'JetBrains Mono', monospace",
+                                marginTop: "2px",
+                            }}
+                        >
+                            {truncateAddress(address)} · {balance ?? "—"} ETH
+                        </p>
+                    </div>
+                </div>
+            )}
+
             {/* Stats row */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: address ? "repeat(4, 1fr)" : "repeat(3, 1fr)", gap: "16px" }}>
                 {stats.map(({ label, value, sub, color }) => (
                     <div
                         key={label}
@@ -79,9 +196,47 @@ export default function Home() {
                         </p>
                     </div>
                 ))}
+
+                {/* Wallet balance stat — only when connected */}
+                {address && (
+                    <div
+                        style={{
+                            background: "var(--bg-elevated)",
+                            border: "1px solid var(--border-subtle)",
+                            borderRadius: "12px",
+                            padding: "24px",
+                            transition: "border-color 0.2s",
+                        }}
+                        onMouseEnter={(e) => {
+                            (e.currentTarget as HTMLElement).style.borderColor = "var(--border-default)";
+                        }}
+                        onMouseLeave={(e) => {
+                            (e.currentTarget as HTMLElement).style.borderColor = "var(--border-subtle)";
+                        }}
+                    >
+                        <p style={{ fontSize: "11.5px", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "10px" }}>
+                            Wallet
+                        </p>
+                        <p
+                            style={{
+                                fontSize: "28px",
+                                fontWeight: 700,
+                                letterSpacing: "-0.04em",
+                                color: "var(--text-primary)",
+                                lineHeight: 1,
+                                fontFamily: "'JetBrains Mono', monospace",
+                            }}
+                        >
+                            {balance ?? "—"}
+                        </p>
+                        <p style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "6px" }}>
+                            ETH · {truncateAddress(address)}
+                        </p>
+                    </div>
+                )}
             </div>
 
-            {/* Recent activity placeholder */}
+            {/* Recent activity */}
             <div
                 style={{
                     background: "var(--bg-elevated)",
