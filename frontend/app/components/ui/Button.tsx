@@ -5,7 +5,8 @@ interface ButtonProps {
     onClick?: () => void;
     disabled?: boolean;
     fullWidth?: boolean;
-    variant?: "primary" | "ghost";
+    variant?: "primary" | "ghost" | "secondary";
+    className?: string;
 }
 
 export default function Button({
@@ -14,61 +15,28 @@ export default function Button({
     disabled,
     fullWidth,
     variant = "primary",
+    className = "",
 }: ButtonProps) {
-    const base: React.CSSProperties = {
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: "6px",
-        padding: "10px 20px",
-        borderRadius: "9px",
-        fontSize: "13.5px",
-        fontWeight: 500,
-        letterSpacing: "-0.01em",
-        cursor: disabled ? "not-allowed" : "pointer",
-        opacity: disabled ? 0.4 : 1,
-        transition: "all 0.15s",
-        width: fullWidth ? "100%" : "auto",
-        fontFamily: "inherit",
-    };
+    const base = `
+        inline-flex items-center justify-center gap-2
+        px-5 py-2.5 rounded-xl text-sm font-semibold
+        transition-all duration-150
+        ${disabled ? "opacity-40 cursor-not-allowed" : "cursor-pointer"}
+        ${fullWidth ? "w-full" : ""}
+        ${className}
+    `;
 
-    const primary: React.CSSProperties = {
-        background: "#fff",
-        color: "#000",
-        border: "1px solid #fff",
-    };
-
-    const ghost: React.CSSProperties = {
-        background: "transparent",
-        color: "var(--text-primary)",
-        border: "1px solid var(--border-default)",
+    const variants: Record<string, string> = {
+        primary: "bg-gradient-to-br from-primary-container to-primary text-white shadow-[0_0_20px_rgba(128,131,255,0.2)] hover:scale-[1.02] hover:shadow-[0_0_25px_rgba(128,131,255,0.3)]",
+        ghost: "bg-transparent text-primary border border-outline-variant/20 hover:border-primary/50 hover:bg-primary/5",
+        secondary: "bg-surface-container-high text-on-surface border border-outline-variant/10 hover:bg-surface-variant",
     };
 
     return (
         <button
             onClick={onClick}
             disabled={disabled}
-            style={{ ...base, ...(variant === "ghost" ? ghost : primary) }}
-            onMouseEnter={(e) => {
-                if (!disabled) {
-                    if (variant === "ghost") {
-                        (e.currentTarget as HTMLElement).style.borderColor = "var(--border-strong)";
-                        (e.currentTarget as HTMLElement).style.background = "var(--accent-dim)";
-                    } else {
-                        (e.currentTarget as HTMLElement).style.background = "#e6e6e6";
-                    }
-                }
-            }}
-            onMouseLeave={(e) => {
-                if (!disabled) {
-                    if (variant === "ghost") {
-                        (e.currentTarget as HTMLElement).style.borderColor = "var(--border-default)";
-                        (e.currentTarget as HTMLElement).style.background = "transparent";
-                    } else {
-                        (e.currentTarget as HTMLElement).style.background = "#fff";
-                    }
-                }
-            }}
+            className={`${base} ${variants[variant]}`}
         >
             {children}
         </button>

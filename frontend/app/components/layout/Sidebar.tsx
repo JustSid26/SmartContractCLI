@@ -1,173 +1,65 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const navItems = [
-    { href: "/", label: "Dashboard", icon: "⬡" },
-    { href: "/validate", label: "Validate", icon: "◈" },
-    { href: "#", label: "Deploy", icon: "↑" },
+const mainNavItems = [
+    { href: "/validate", label: "Validate", icon: "rule" },
 ];
 
+const bottomNavItems: { href: string; label: string; icon: string }[] = [];
+
 export default function Sidebar() {
-    const [open, setOpen] = useState(true);
     const pathname = usePathname();
 
     return (
-        <aside
-            style={{
-                width: open ? "220px" : "60px",
-                background: "#f7f6f3",
-                borderRight: "1px solid #e2e0db",
-                transition: "width 0.25s ease",
-                display: "flex",
-                flexDirection: "column",
-                minHeight: "100vh",
-                flexShrink: 0,
-                zIndex: 10,
-                overflow: "hidden",
-            }}
-        >
+        <aside className="fixed left-0 top-0 h-full flex flex-col py-6 px-4 space-y-8 bg-zinc-900 w-64 z-50">
             {/* Brand */}
-            <div
-                style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "10px",
-                    padding: "16px 14px",
-                    borderBottom: "1px solid #e2e0db",
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    justifyContent: open ? "flex-start" : "center",
-                }}
-            >
-                <div
-                    style={{
-                        width: "28px",
-                        height: "28px",
-                        background: "#1a1a1a",
-                        borderRadius: "7px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: "13px",
-                        color: "#fff",
-                        fontWeight: 700,
-                        flexShrink: 0,
-                    }}
-                >
-                    S
-                </div>
-                {open && (
+            <div className="flex items-center space-x-3 px-2">
+                <div className="w-8 h-8 rounded bg-primary-container flex items-center justify-center">
                     <span
-                        style={{
-                            fontWeight: 600,
-                            fontSize: "14px",
-                            letterSpacing: "-0.02em",
-                            color: "#1a1a1a",
-                        }}
+                        className="material-symbols-outlined text-white"
+                        style={{ fontVariationSettings: "'FILL' 1", fontSize: "18px" }}
                     >
-                        SmartCLI
+                        lens
                     </span>
-                )}
+                </div>
+                <div>
+                    <h1 className="text-lg font-black text-white leading-none">ContractLens</h1>
+                </div>
             </div>
 
-            {/* Collapse button — its own row */}
-            <div
-                style={{
-                    padding: "6px 8px",
-                    borderBottom: "1px solid #e2e0db",
-                    display: "flex",
-                    justifyContent: open ? "flex-end" : "center",
-                }}
-            >
-                <button
-                    onClick={() => setOpen(!open)}
-                    title={open ? "Collapse" : "Expand"}
-                    style={{
-                        width: "28px",
-                        height: "24px",
-                        borderRadius: "5px",
-                        background: "transparent",
-                        border: "1px solid #d9d6d0",
-                        color: "#9e9a94",
-                        cursor: "pointer",
-                        fontSize: "11px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        transition: "all 0.15s",
-                    }}
-                    onMouseEnter={(e) => {
-                        (e.currentTarget as HTMLElement).style.background = "rgba(0,0,0,0.05)";
-                        (e.currentTarget as HTMLElement).style.color = "#1a1a1a";
-                        (e.currentTarget as HTMLElement).style.borderColor = "#bbb8b2";
-                    }}
-                    onMouseLeave={(e) => {
-                        (e.currentTarget as HTMLElement).style.background = "transparent";
-                        (e.currentTarget as HTMLElement).style.color = "#9e9a94";
-                        (e.currentTarget as HTMLElement).style.borderColor = "#d9d6d0";
-                    }}
-                >
-                    {open ? "←" : "→"}
-                </button>
-            </div>
+            {/* Main navigation */}
+            <nav className="flex-1 space-y-1">
+                {mainNavItems.map(({ href, label, icon }) => {
+                    const active = pathname === href || (href === "/" && pathname === "/");
+                    const isOverview = href === "/";
+                    const isActive = isOverview ? pathname === "/" : pathname === href;
 
-            {/* Nav */}
-            <nav
-                style={{
-                    flex: 1,
-                    padding: "10px 8px",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "2px",
-                }}
-            >
-                {navItems.map(({ href, label, icon }) => {
-                    const active = pathname === href;
                     return (
                         <Link
                             key={href}
-                            href={href}
-                            style={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: "10px",
-                                padding: "9px 10px",
-                                justifyContent: open ? "flex-start" : "center",
-                                borderRadius: "8px",
-                                fontSize: "13.5px",
-                                fontWeight: active ? 600 : 400,
-                                color: active ? "#1a1a1a" : "#6b6863",
-                                background: active ? "rgba(0,0,0,0.07)" : "transparent",
-                                border: active ? "1px solid rgba(0,0,0,0.1)" : "1px solid transparent",
-                                transition: "all 0.15s",
-                                textDecoration: "none",
-                                overflow: "hidden",
-                                whiteSpace: "nowrap",
-                            }}
-                            onMouseEnter={(e) => {
-                                if (!active) {
-                                    (e.currentTarget as HTMLElement).style.background = "rgba(0,0,0,0.05)";
-                                    (e.currentTarget as HTMLElement).style.color = "#1a1a1a";
+                            href={href === "/" || href === "/validate" ? href : "#"}
+                            className={`
+                                relative flex items-center rounded-md px-4 py-2.5 group transition-all
+                                ${isActive
+                                    ? "bg-zinc-800 text-white before:absolute before:left-0 before:w-[3px] before:h-2/3 before:bg-indigo-500"
+                                    : "text-zinc-400 hover:bg-zinc-800/50 hover:text-indigo-300"
                                 }
-                            }}
-                            onMouseLeave={(e) => {
-                                if (!active) {
-                                    (e.currentTarget as HTMLElement).style.background = "transparent";
-                                    (e.currentTarget as HTMLElement).style.color = "#6b6863";
-                                }
-                            }}
+                            `}
                         >
-                            <span style={{ fontSize: "15px", flexShrink: 0 }}>{icon}</span>
-                            {open && <span>{label}</span>}
+                            <span className={`material-symbols-outlined mr-3 ${isActive ? "text-indigo-400" : ""}`}>
+                                {icon}
+                            </span>
+                            <span className="font-medium text-sm">{label}</span>
                         </Link>
                     );
                 })}
             </nav>
 
-
+            {/* Bottom section */}
+            <div className="pt-4 space-y-1">
+            </div>
         </aside>
     );
 }

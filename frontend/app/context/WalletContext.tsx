@@ -59,6 +59,18 @@ function hexToNumber(hex: string): number {
   return parseInt(hex, 16);
 }
 
+// Safely extracts the authentic MetaMask provider avoiding Phantom hijacking
+export function getMetaMaskProvider(): any {
+  if (typeof window === "undefined" || !window.ethereum) return null;
+  const eth = window.ethereum as any;
+
+  if (eth.providers?.length) {
+    const provider = eth.providers.find((p: any) => p.isMetaMask && !p.isPhantom);
+    if (provider) return provider;
+  }
+  return eth;
+}
+
 function weiToEth(weiHex: string): string {
   const wei = BigInt(weiHex);
   const eth = Number(wei) / 1e18;
@@ -81,7 +93,9 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
   /* ---------- fetch balance for a given address & chain ---------- */
   const fetchBalance = useCallback(async (addr: string) => {
     try {
-      const balHex = (await window.ethereum!.request({
+      const provider = getMetaMaskProvider();
+      if (!provider) return null;
+      const balHex = (await provider.request({
         method: "eth_getBalance",
         params: [addr, "latest"],
       })) as string;
@@ -106,7 +120,9 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
       }
 
       const addr = accounts[0];
-      const chainHex = (await window.ethereum!.request({
+      const provider = getMetaMaskProvider();
+      if (!provider) return;
+      const chainHex = (await provider.request({
         method: "eth_chainId",
       })) as string;
       const chainId = hexToNumber(chainHex);
@@ -126,7 +142,8 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
 
   /* ---------- connect ---------- */
   const connect = useCallback(async () => {
-    if (!window.ethereum) {
+    const provider = getMetaMaskProvider();
+    if (!provider) {
       setState((s) => ({
         ...s,
         error: "MetaMask not detected. Please install the extension.",
@@ -137,9 +154,10 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     setState((s) => ({ ...s, isConnecting: true, error: null }));
 
     try {
-      const accounts = (await window.ethereum.request({
+      const accounts = (await provider.request({
         method: "eth_requestAccounts",
       })) as string[];
+      localStorage.setItem("evmConnected", "true");
       await syncWallet(accounts);
     } catch (err: unknown) {
       const message =
@@ -152,8 +170,8 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     }
   }, [syncWallet]);
 
-  /* ---------- disconnect (local only) ---------- */
   const disconnect = useCallback(() => {
+    localStorage.removeItem("evmConnected");
     setState({
       address: null,
       chainId: null,
@@ -165,41 +183,47 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
 
   /* ---------- auto-reconnect + event listeners ---------- */
   useEffect(() => {
-    const eth = window.ethereum;
-    if (!eth) return;
+    const provider = getMetaMaskProvider();
+    if (!provider) return;
 
-    // Auto-reconnect silently — won't pop up the MetaMask dialog
-    (async () => {
-      try {
-        const accounts = (await eth.request({
-          method: "eth_accounts",
-        })) as string[];
-        if (accounts.length > 0) await syncWallet(accounts);
-      } catch {
-        // ignore
-      }
-    })();
+    // Auto-reconnect silently ONLY if they connected before
+    if (typeof window !== "undefined" && localStorage.getItem("evmConnected") === "true") {
+      (async () => {
+        try {
+          const accounts = (await provider.request({
+            method: "eth_accounts",
+          })) as string[];
+          if (accounts.length > 0) await syncWallet(accounts);
+        } catch {
+          // ignore
+        }
+      })();
+    }
 
     const handleAccountsChanged = (accs: unknown) => {
       syncWallet(accs as string[]);
     };
 
     const handleChainChanged = () => {
-      // Re-sync — chain changed implies balance may differ too
+      // Re-sync
       (async () => {
-        const accounts = (await eth.request({
+        const accounts = (await provider.request({
           method: "eth_accounts",
         })) as string[];
         if (accounts.length > 0) await syncWallet(accounts);
       })();
     };
 
-    eth.on("accountsChanged", handleAccountsChanged);
-    eth.on("chainChanged", handleChainChanged);
+    if (provider.on) {
+       provider.on("accountsChanged", handleAccountsChanged);
+       provider.on("chainChanged", handleChainChanged);
+    }
 
     return () => {
-      eth.removeListener("accountsChanged", handleAccountsChanged);
-      eth.removeListener("chainChanged", handleChainChanged);
+      if (provider.removeListener) {
+        provider.removeListener("accountsChanged", handleAccountsChanged);
+        provider.removeListener("chainChanged", handleChainChanged);
+      }
     };
   }, [syncWallet]);
 

@@ -4,8 +4,8 @@ import Header from "@/app/components/Header";
 import Providers from "@/app/components/Providers";
 
 export const metadata = {
-    title: "SmartContractCLI",
-    description: "Deploy and validate smart contracts",
+    title: "DevVault — ContractLens Dashboard",
+    description: "Real-time analytical layer for smart contract integrity",
 };
 
 export default function RootLayout({
@@ -14,31 +14,31 @@ export default function RootLayout({
     children: React.ReactNode;
 }) {
     return (
-        <html lang="en">
+        <html lang="en" className="dark">
             <head>
                 <link rel="preconnect" href="https://fonts.googleapis.com" />
                 <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
                 <link
-                    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+                    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap"
+                    rel="stylesheet"
+                />
+                <link
+                    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
                     rel="stylesheet"
                 />
             </head>
-            <body>
+            <body className="bg-surface text-on-surface">
                 <Providers>
-                    <div className="flex min-h-screen relative z-10">
+                    {/* Fixed Sidebar */}
+                    <Sidebar />
 
-                        {/* Sidebar */}
-                        <Sidebar />
-
-                        {/* Main pane */}
-                        <div className="flex-1 flex flex-col min-h-screen">
-                            <Header />
-                            <main className="flex-1 p-10">
-                                {children}
-                            </main>
+                    {/* Main content area — offset by sidebar width */}
+                    <main className="ml-64 min-h-screen">
+                        <Header />
+                        <div className="pt-24 px-8 pb-12">
+                            {children}
                         </div>
-
-                    </div>
+                    </main>
                 </Providers>
             </body>
         </html>

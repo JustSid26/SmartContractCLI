@@ -1,29 +1,76 @@
 @import "tailwindcss";
 
-:root {
-  --bg-base: #000000;
-  --bg-surface: #0d0d0d;
-  --bg-elevated: #141414;
-  --bg-hover: #1c1c1c;
+/* ================================================================== */
+/*  Stitch Design System — Charcoal & Indigo ("Neon Nocturne")        */
+/* ================================================================== */
 
-  --border-subtle: #1f1f1f;
-  --border-default: #2a2a2a;
-  --border-strong: #3d3d3d;
+@theme {
+  /* ---- Surface Hierarchy ---- */
+  --color-surface: #131315;
+  --color-surface-dim: #131315;
+  --color-surface-bright: #39393b;
+  --color-surface-container-lowest: #0e0e10;
+  --color-surface-container-low: #1b1b1d;
+  --color-surface-container: #201f21;
+  --color-surface-container-high: #2a2a2c;
+  --color-surface-container-highest: #353437;
 
-  --text-primary: #ffffff;
-  --text-secondary: #888888;
-  --text-muted: #555555;
+  /* ---- Primary — Indigo ---- */
+  --color-primary: #c0c1ff;
+  --color-primary-container: #8083ff;
+  --color-primary-fixed: #e1e0ff;
+  --color-primary-fixed-dim: #c0c1ff;
+  --color-on-primary: #1000a9;
+  --color-on-primary-container: #0d0096;
+  --color-on-primary-fixed: #07006c;
+  --color-on-primary-fixed-variant: #2f2ebe;
+  --color-inverse-primary: #494bd6;
+  --color-surface-tint: #c0c1ff;
 
-  --accent: #ffffff;
-  --accent-dim: rgba(255, 255, 255, 0.07);
+  /* ---- Secondary ---- */
+  --color-secondary: #c8c6c8;
+  --color-secondary-container: #474649;
+  --color-secondary-fixed: #e4e2e4;
+  --color-secondary-fixed-dim: #c8c6c8;
+  --color-on-secondary: #303032;
+  --color-on-secondary-container: #b7b4b7;
+  --color-on-secondary-fixed: #1b1b1d;
+  --color-on-secondary-fixed-variant: #474649;
 
-  --success-text: #e2e2e2;
-  --success-border: #3a3a3a;
-  --success-bg: #111111;
+  /* ---- Tertiary — Amber/Orange ---- */
+  --color-tertiary: #ffb783;
+  --color-tertiary-container: #d97721;
+  --color-tertiary-fixed: #ffdcc5;
+  --color-tertiary-fixed-dim: #ffb783;
+  --color-on-tertiary: #4f2500;
+  --color-on-tertiary-container: #452000;
+  --color-on-tertiary-fixed: #301400;
+  --color-on-tertiary-fixed-variant: #703700;
 
-  --danger-text: #c0c0c0;
-  --danger-border: #333333;
-  --danger-bg: #0d0d0d;
+  /* ---- Error ---- */
+  --color-error: #ffb4ab;
+  --color-error-container: #93000a;
+  --color-on-error: #690005;
+  --color-on-error-container: #ffdad6;
+
+  /* ---- Neutral / Background / Surface ---- */
+  --color-background: #131315;
+  --color-on-background: #e5e1e4;
+  --color-on-surface: #e5e1e4;
+  --color-on-surface-variant: #c7c4d7;
+  --color-inverse-surface: #e5e1e4;
+  --color-inverse-on-surface: #303032;
+  --color-surface-variant: #353437;
+
+  /* ---- Outline ---- */
+  --color-outline: #908fa0;
+  --color-outline-variant: #464554;
+
+  /* ---- Font Families ---- */
+  --font-headline: "Inter", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, sans-serif;
+  --font-label: "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", monospace;
 }
 
 * {
@@ -36,44 +83,56 @@ html {
 }
 
 body {
-  background-color: var(--bg-base);
-  color: var(--text-primary);
-  font-family: "Inter", system-ui, sans-serif;
+  background-color: var(--color-surface);
+  color: var(--color-on-surface);
+  font-family: var(--font-body);
   letter-spacing: -0.01em;
 }
 
-/* Subtle dot-grid background */
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background-image: radial-gradient(circle, #1e1e1e 1px, transparent 1px);
-  background-size: 28px 28px;
-  pointer-events: none;
-  z-index: 0;
-  opacity: 0.5;
+::selection {
+  background: var(--color-primary-container);
+  color: #fff;
 }
 
-/* Scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
+/* ---- Material Symbols ---- */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
 }
 
-::-webkit-scrollbar-track {
-  background: transparent;
+/* ---- Scrollbar ---- */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--color-surface); }
+::-webkit-scrollbar-thumb { background: var(--color-surface-container-high); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-primary); }
+
+/* ---- Glass Header ---- */
+.glass-header {
+  background: rgba(27, 27, 29, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
-::-webkit-scrollbar-thumb {
-  background: #2a2a2a;
-  border-radius: 3px;
+/* ---- Indigo Gradient CTA ---- */
+.indigo-gradient {
+  background: linear-gradient(135deg, #8083ff 0%, #c0c1ff 100%);
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #3a3a3a;
+/* ---- Neon Glow ---- */
+.neon-glow-primary {
+  box-shadow: 0 0 15px rgba(192, 193, 255, 0.1);
 }
 
-/* ---- Wallet animations ---- */
+/* ---- Ambient Indigo Shadow ---- */
+.ambient-shadow {
+  box-shadow: 0 8px 32px -4px rgba(192, 193, 255, 0.06);
+}
 
+/* ---- Ghost Border ---- */
+.ghost-border {
+  border: 1px solid rgba(70, 69, 84, 0.2);
+}
+
+/* ---- Animations ---- */
 @keyframes pulse-subtle {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.55; }
@@ -90,11 +149,27 @@ body::before {
   }
 }
 
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .wallet-spinner {
   width: 14px;
   height: 14px;
-  border: 2px solid rgba(255, 255, 255, 0.15);
-  border-top-color: rgba(255, 255, 255, 0.8);
+  border: 2px solid rgba(192, 193, 255, 0.15);
+  border-top-color: rgba(192, 193, 255, 0.8);
   border-radius: 50%;
   animation: spin 0.65s linear infinite;
 }

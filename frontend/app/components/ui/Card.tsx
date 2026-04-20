@@ -1,31 +1,16 @@
-export default function Card({
-    children,
-    title,
-}: {
+interface CardProps {
     children: React.ReactNode;
     title?: string;
-}) {
+    className?: string;
+}
+
+export default function Card({ children, title, className = "" }: CardProps) {
     return (
-        <div
-            style={{
-                background: "var(--bg-elevated)",
-                border: "1px solid var(--border-subtle)",
-                borderRadius: "12px",
-                padding: "28px",
-            }}
-        >
+        <div className={`bg-surface-container-low rounded-2xl p-6 border border-outline-variant/10 ${className}`}>
             {title && (
-                <p
-                    style={{
-                        fontSize: "11.5px",
-                        color: "var(--text-muted)",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.06em",
-                        marginBottom: "20px",
-                    }}
-                >
+                <h3 className="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-5">
                     {title}
-                </p>
+                </h3>
             )}
             {children}
         </div>

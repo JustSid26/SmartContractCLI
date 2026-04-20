@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useWallet } from "@/app/context/WalletContext";
+import { checkHealth } from "@/lib/api";
 
 /* ------------------------------------------------------------------ */
 /*  Deterministic identicon (blocky avatar from address)               */
@@ -16,11 +17,10 @@ function Identicon({ address, size = 22 }: { address: string; size?: number }) {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const seed = address.toLowerCase().slice(2); // strip 0x
+    const seed = address.toLowerCase().slice(2);
     const gridSize = 5;
     const cellSize = size / gridSize;
 
-    // Generate a color from the address
     const hue = parseInt(seed.slice(0, 4), 16) % 360;
     const sat = 55 + (parseInt(seed.slice(4, 6), 16) % 30);
     const light = 55 + (parseInt(seed.slice(6, 8), 16) % 15);
@@ -37,7 +37,6 @@ function Identicon({ address, size = 22 }: { address: string; size?: number }) {
         const val = parseInt(seed[idx % seed.length], 16);
         if (val > 7) {
           ctx.fillRect(col * cellSize, row * cellSize, cellSize, cellSize);
-          // Mirror horizontally
           ctx.fillRect(
             (gridSize - 1 - col) * cellSize,
             row * cellSize,
@@ -77,8 +76,8 @@ export default function Header() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [backendOnline, setBackendOnline] = useState<boolean | null>(null);
 
-  // Close dropdown on outside click
   useEffect(() => {
     function onClick(e: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -89,6 +88,13 @@ export default function Header() {
     return () => document.removeEventListener("mousedown", onClick);
   }, []);
 
+  useEffect(() => {
+    const poll = async () => setBackendOnline(await checkHealth());
+    poll();
+    const interval = setInterval(poll, 10_000);
+    return () => clearInterval(interval);
+  }, []);
+
   const copyAddress = async () => {
     if (!address) return;
     await navigator.clipboard.writeText(address);
@@ -96,382 +102,166 @@ export default function Header() {
     setTimeout(() => setCopied(false), 1800);
   };
 
-  /* ---------- Network indicator dot color ---------- */
-  const networkDotColor = address
-    ? chainId === 11155111
-      ? "#4ade80" // Sepolia — green
-      : "#facc15" // other network — amber
-    : "#fff";
+  const statusText = backendOnline === null ? "Checking..." : backendOnline ? "System Online" : "System Offline";
+  const statusColor = backendOnline === null ? "bg-zinc-500" : backendOnline ? "bg-emerald-500 animate-pulse" : "bg-red-500";
 
   return (
-    <header
-      style={{
-        height: "56px",
-        borderBottom: "1px solid var(--border-subtle)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        padding: "0 24px",
-        background: "var(--bg-surface)",
-        flexShrink: 0,
-      }}
-    >
-      {/* Left — network indicator */}
-      <div
-        style={{
-          fontSize: "12.5px",
-          color: "var(--text-muted)",
-          display: "flex",
-          alignItems: "center",
-          gap: "6px",
-        }}
-      >
-        <span
-          style={{
-            display: "inline-block",
-            width: "6px",
-            height: "6px",
-            borderRadius: "50%",
-            background: networkDotColor,
-            opacity: address ? 1 : 0.7,
-            transition: "all 0.3s",
-          }}
-        />
-        Network:{" "}
-        <span style={{ color: "var(--text-secondary)" }}>
-          {address ? networkName : "Sepolia"}
-        </span>
-        {address && chainId !== 11155111 && (
-          <span
-            style={{
-              fontSize: "10px",
-              padding: "1px 7px",
-              borderRadius: "20px",
-              background: "rgba(250, 204, 21, 0.12)",
-              border: "1px solid rgba(250, 204, 21, 0.3)",
-              color: "#facc15",
-              marginLeft: "4px",
-              letterSpacing: "0.04em",
-            }}
-          >
-            Not Sepolia
+    <header className="fixed top-0 right-0 left-64 z-50 glass-header flex justify-between items-center px-8 h-16 ambient-shadow">
+      {/* Left — system status */}
+      <div className="flex items-center flex-1">
+        <div className="bg-surface-container-low px-3 py-1.5 rounded-lg flex items-center space-x-2 border border-outline-variant/10">
+          <span className={`w-1.5 h-1.5 rounded-full ${statusColor}`} />
+          <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+            {statusText}
           </span>
-        )}
+        </div>
       </div>
 
-      {/* Right — wallet button / pill */}
-      <div ref={dropdownRef} style={{ position: "relative" }}>
-        {!address ? (
-          /* ---- Connect button ---- */
-          <button
-            id="connect-wallet-btn"
-            onClick={connect}
-            disabled={isConnecting}
-            style={{
-              padding: "6px 16px",
-              borderRadius: "8px",
-              background: "transparent",
-              border: "1px solid var(--border-default)",
-              color: "var(--text-primary)",
-              fontSize: "13px",
-              fontWeight: 500,
-              cursor: isConnecting ? "wait" : "pointer",
-              transition: "all 0.15s",
-              letterSpacing: "-0.01em",
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              animation: isConnecting ? "pulse-subtle 1.5s ease-in-out infinite" : "none",
-            }}
-            onMouseEnter={(e) => {
-              if (!isConnecting) {
-                (e.currentTarget as HTMLElement).style.background = "var(--accent-dim)";
-                (e.currentTarget as HTMLElement).style.borderColor = "var(--border-strong)";
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!isConnecting) {
-                (e.currentTarget as HTMLElement).style.background = "transparent";
-                (e.currentTarget as HTMLElement).style.borderColor = "var(--border-default)";
-              }
-            }}
-          >
-            {isConnecting ? (
-              <>
-                <span className="wallet-spinner" />
-                Connecting…
-              </>
-            ) : (
-              <>
-                {/* MetaMask fox icon (simple SVG) */}
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.7 }}>
-                  <path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12" />
-                  <path d="M4 6v12c0 1.1.9 2 2 2h14v-4" />
-                  <path d="M18 12a2 2 0 0 0 0 4h4v-4h-4z" />
-                </svg>
-                Connect Wallet
-              </>
-            )}
-          </button>
-        ) : (
-          /* ---- Connected pill ---- */
-          <button
-            id="wallet-pill"
-            onClick={() => setDropdownOpen((o) => !o)}
-            style={{
-              padding: "5px 12px 5px 8px",
-              borderRadius: "9px",
-              background: "var(--accent-dim)",
-              border: "1px solid var(--border-default)",
-              color: "var(--text-primary)",
-              fontSize: "13px",
-              fontWeight: 500,
-              cursor: "pointer",
-              transition: "all 0.15s",
-              letterSpacing: "-0.01em",
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-            }}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLElement).style.borderColor = "var(--border-strong)";
-              (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.1)";
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLElement).style.borderColor = "var(--border-default)";
-              (e.currentTarget as HTMLElement).style.background = "var(--accent-dim)";
-            }}
-          >
-            <Identicon address={address} size={22} />
-            <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "12.5px" }}>
-              {truncateAddress(address)}
-            </span>
-            <svg
-              width="10"
-              height="10"
-              viewBox="0 0 10 10"
-              fill="none"
-              style={{
-                marginLeft: "2px",
-                opacity: 0.5,
-                transition: "transform 0.2s",
-                transform: dropdownOpen ? "rotate(180deg)" : "rotate(0deg)",
-              }}
+      {/* Right — actions */}
+      <div className="flex items-center space-x-6">
+
+        {/* Wallet area */}
+        <div ref={dropdownRef} className="relative">
+          {!address ? (
+            <button
+              id="connect-wallet-btn"
+              onClick={connect}
+              disabled={isConnecting}
+              className="px-4 py-1.5 border border-indigo-500/30 rounded-xl text-indigo-400 text-sm font-medium hover:bg-indigo-500/10 transition-all flex items-center gap-2"
             >
-              <path d="M2 4L5 7L8 4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </button>
-        )}
+              {isConnecting ? (
+                <>
+                  <span className="wallet-spinner" />
+                  Connecting…
+                </>
+              ) : (
+                "Connect Wallet"
+              )}
+            </button>
+          ) : (
+            <button
+              id="wallet-pill"
+              onClick={() => setDropdownOpen((o) => !o)}
+              className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-zinc-800/50 border border-zinc-700 hover:border-indigo-500/30 transition-all"
+            >
+              <Identicon address={address} size={24} />
+              <span className="text-sm text-zinc-300 font-mono">
+                {truncateAddress(address)}
+              </span>
+              <svg
+                width="10"
+                height="10"
+                viewBox="0 0 10 10"
+                fill="none"
+                className="opacity-50 transition-transform"
+                style={{ transform: dropdownOpen ? "rotate(180deg)" : "rotate(0deg)" }}
+              >
+                <path d="M2 4L5 7L8 4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+          )}
 
-        {/* ---- Error toast ---- */}
-        {error && !address && (
-          <div
-            style={{
-              position: "absolute",
-              top: "calc(100% + 8px)",
-              right: 0,
-              background: "rgba(239, 68, 68, 0.12)",
-              border: "1px solid rgba(239, 68, 68, 0.3)",
-              borderRadius: "10px",
-              padding: "10px 14px",
-              fontSize: "12px",
-              color: "#fca5a5",
-              whiteSpace: "nowrap",
-              zIndex: 100,
-              backdropFilter: "blur(16px)",
-              animation: "dropdown-enter 0.2s ease-out",
-            }}
-          >
-            {error}
-          </div>
-        )}
-
-        {/* ---- Dropdown ---- */}
-        {dropdownOpen && address && (
-          <div
-            className="wallet-dropdown"
-            style={{
-              position: "absolute",
-              top: "calc(100% + 8px)",
-              right: 0,
-              width: "280px",
-              background: "rgba(18, 18, 18, 0.92)",
-              backdropFilter: "blur(24px) saturate(1.4)",
-              WebkitBackdropFilter: "blur(24px) saturate(1.4)",
-              border: "1px solid var(--border-default)",
-              borderRadius: "14px",
-              padding: "0",
-              zIndex: 100,
-              boxShadow: "0 16px 48px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04) inset",
-              overflow: "hidden",
-              animation: "dropdown-enter 0.2s ease-out",
-            }}
-          >
-            {/* Header row */}
+          {/* Error toast */}
+          {error && !address && (
             <div
+              className="absolute top-full mt-2 right-0 z-[100] rounded-xl px-4 py-2.5 text-xs whitespace-nowrap"
               style={{
-                padding: "16px",
-                borderBottom: "1px solid var(--border-subtle)",
-                display: "flex",
-                alignItems: "center",
-                gap: "12px",
+                background: "rgba(147, 0, 10, 0.2)",
+                border: "1px solid rgba(255, 180, 171, 0.3)",
+                color: "#ffb4ab",
+                backdropFilter: "blur(16px)",
+                animation: "dropdown-enter 0.2s ease-out",
               }}
             >
-              <Identicon address={address} size={36} />
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <p
-                  style={{
-                    fontSize: "13.5px",
-                    fontWeight: 600,
-                    color: "var(--text-primary)",
-                    letterSpacing: "-0.02em",
-                  }}
-                >
-                  {truncateAddress(address)}
-                </p>
-                <p style={{ fontSize: "11.5px", color: "var(--text-muted)", marginTop: "1px" }}>
-                  {networkName} · Chain {chainId}
-                </p>
-              </div>
+              {error}
             </div>
+          )}
 
-            {/* Info rows */}
-            <div style={{ padding: "10px 16px", display: "flex", flexDirection: "column", gap: "0" }}>
-              {/* Balance */}
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  padding: "8px 0",
-                  borderBottom: "1px solid var(--border-subtle)",
-                }}
-              >
-                <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>Balance</span>
-                <span
-                  style={{
-                    fontSize: "13px",
-                    fontWeight: 600,
-                    color: "var(--text-primary)",
-                    fontFamily: "'JetBrains Mono', monospace",
-                  }}
-                >
-                  {balance ?? "—"} ETH
-                </span>
+          {/* Wallet dropdown */}
+          {dropdownOpen && address && (
+            <div
+              className="absolute top-full mt-2 right-0 w-72 z-[100] rounded-2xl overflow-hidden"
+              style={{
+                background: "rgba(27, 27, 29, 0.95)",
+                backdropFilter: "blur(24px) saturate(1.4)",
+                border: "1px solid rgba(70, 69, 84, 0.3)",
+                boxShadow: "0 16px 48px rgba(0,0,0,0.5), 0 0 0 1px rgba(192, 193, 255, 0.04) inset",
+                animation: "dropdown-enter 0.2s ease-out",
+              }}
+            >
+              {/* Header row */}
+              <div className="p-4 border-b border-outline-variant/20 flex items-center gap-3">
+                <Identicon address={address} size={36} />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-white tracking-tight">
+                    {truncateAddress(address)}
+                  </p>
+                  <p className="text-[11px] text-on-surface-variant mt-0.5">
+                    {networkName} · Chain {chainId}
+                  </p>
+                </div>
               </div>
 
-              {/* Full address — copy */}
-              <button
-                onClick={copyAddress}
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  padding: "8px 0",
-                  borderBottom: "1px solid var(--border-subtle)",
-                  background: "none",
-                  border: "none",
-                  width: "100%",
-                  cursor: "pointer",
-                  borderBottomWidth: "1px",
-                  borderBottomStyle: "solid",
-                  borderBottomColor: "var(--border-subtle)",
-                }}
-              >
-                <span
-                  style={{
-                    fontSize: "11.5px",
-                    color: "var(--text-muted)",
-                    fontFamily: "'JetBrains Mono', monospace",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                    maxWidth: "190px",
-                  }}
-                >
-                  {address}
-                </span>
-                <span
-                  style={{
-                    fontSize: "10.5px",
-                    color: copied ? "#4ade80" : "var(--text-muted)",
-                    transition: "color 0.2s",
-                    flexShrink: 0,
-                  }}
-                >
-                  {copied ? "Copied ✓" : "Copy"}
-                </span>
-              </button>
+              {/* Info rows */}
+              <div className="px-4 py-2 space-y-0">
+                {/* Balance */}
+                <div className="flex justify-between items-center py-2.5 border-b border-outline-variant/10">
+                  <span className="text-xs text-on-surface-variant">Balance</span>
+                  <span className="text-sm font-semibold text-white font-mono">
+                    {balance ?? "—"} ETH
+                  </span>
+                </div>
 
-              {/* Network */}
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  padding: "8px 0",
-                }}
-              >
-                <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>Network</span>
-                <span
+                {/* Copy address */}
+                <button
+                  onClick={copyAddress}
+                  className="flex justify-between items-center py-2.5 border-b border-outline-variant/10 w-full bg-transparent border-none cursor-pointer"
+                >
+                  <span className="text-[11px] text-on-surface-variant font-mono truncate max-w-[180px]">
+                    {address}
+                  </span>
+                  <span className={`text-[10px] flex-shrink-0 transition-colors ${copied ? "text-emerald-400" : "text-on-surface-variant"}`}>
+                    {copied ? "Copied ✓" : "Copy"}
+                  </span>
+                </button>
+
+                {/* Network */}
+                <div className="flex justify-between items-center py-2.5">
+                  <span className="text-xs text-on-surface-variant">Network</span>
+                  <span className={`text-xs font-medium flex items-center gap-1.5 ${chainId === 11155111 ? "text-emerald-400" : "text-tertiary"}`}>
+                    <span className="w-1.5 h-1.5 rounded-full bg-current" />
+                    {networkName}
+                  </span>
+                </div>
+              </div>
+
+              {/* Disconnect */}
+              <div className="p-3">
+                <button
+                  id="disconnect-wallet-btn"
+                  onClick={() => {
+                    disconnect();
+                    setDropdownOpen(false);
+                  }}
+                  className="w-full py-2 rounded-xl text-xs font-medium transition-all"
                   style={{
-                    fontSize: "12px",
-                    fontWeight: 500,
-                    color: chainId === 11155111 ? "#4ade80" : "#facc15",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "5px",
+                    background: "rgba(147, 0, 10, 0.12)",
+                    border: "1px solid rgba(255, 180, 171, 0.2)",
+                    color: "#ffb4ab",
+                  }}
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLElement).style.background = "rgba(147, 0, 10, 0.25)";
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLElement).style.background = "rgba(147, 0, 10, 0.12)";
                   }}
                 >
-                  <span
-                    style={{
-                      display: "inline-block",
-                      width: "5px",
-                      height: "5px",
-                      borderRadius: "50%",
-                      background: "currentColor",
-                    }}
-                  />
-                  {networkName}
-                </span>
+                  Disconnect
+                </button>
               </div>
             </div>
-
-            {/* Disconnect */}
-            <div style={{ padding: "8px 12px 12px" }}>
-              <button
-                id="disconnect-wallet-btn"
-                onClick={() => {
-                  disconnect();
-                  setDropdownOpen(false);
-                }}
-                style={{
-                  width: "100%",
-                  padding: "9px",
-                  borderRadius: "9px",
-                  background: "rgba(239, 68, 68, 0.08)",
-                  border: "1px solid rgba(239, 68, 68, 0.2)",
-                  color: "#fca5a5",
-                  fontSize: "12.5px",
-                  fontWeight: 500,
-                  cursor: "pointer",
-                  transition: "all 0.15s",
-                  letterSpacing: "-0.01em",
-                }}
-                onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLElement).style.background = "rgba(239, 68, 68, 0.15)";
-                  (e.currentTarget as HTMLElement).style.borderColor = "rgba(239, 68, 68, 0.35)";
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLElement).style.background = "rgba(239, 68, 68, 0.08)";
-                  (e.currentTarget as HTMLElement).style.borderColor = "rgba(239, 68, 68, 0.2)";
-                }}
-              >
-                Disconnect
-              </button>
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </header>
   );

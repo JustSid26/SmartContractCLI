@@ -1,8 +1,9 @@
 import axios from "axios";
 
-export const validateContract = async (file: File) => {
+export const validateContract = async (file: File, chain: string) => {
     const formData = new FormData();
     formData.append("file", file);
+    formData.append("chain", chain);
 
     const response = await axios.post(
         "http://localhost:3000/api/validate",
