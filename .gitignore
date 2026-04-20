@@ -11,3 +11,6 @@ backend/target/
 *.log
 
 .idea
+
+stitch_ui
+backend/solc
