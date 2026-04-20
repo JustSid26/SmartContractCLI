@@ -13,3 +13,5 @@ thiserror = "1"
 cosmwasm-vm = "1.5"
 bytes = "1"
 uuid = { version = "1", features = ["v4"] }
+solana_rbpf = "0.8.5"
+solang-parser = "0.3.5"
